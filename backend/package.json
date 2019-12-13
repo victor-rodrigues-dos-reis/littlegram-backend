@@ -1,0 +1,9 @@
+{
+  "name": "littlegram-api",
+  "version": "1.0.0",
+  "description": "API do projeto Littlegram",
+  "main": "index.js",
+  "repository": "https://github.com/victor-rodrigues-dos-reis/littlegram/backend",
+  "author": "Victor Rodrigues dos Reis",
+  "license": "MIT"
+}
