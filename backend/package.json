@@ -5,5 +5,11 @@
   "main": "index.js",
   "repository": "https://github.com/victor-rodrigues-dos-reis/littlegram/backend",
   "author": "Victor Rodrigues dos Reis",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  }
 }
