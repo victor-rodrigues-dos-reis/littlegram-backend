@@ -1,5 +1,6 @@
 const Comment = require('../models/Comment');
 const Post = require('../models/Post');
+const {ObjectId} = require('mongodb');
 
 module.exports = {
     async create(request, response) {
@@ -100,9 +101,22 @@ module.exports = {
         if (!postExists)
             return response.status(400).json({'error': 'This post does not exist'});
 
-        // Tenta selecionar todas os comentários de um post
+        console.log(ObjectId(postId));
+
+        // Tenta selecionar todas os comentários de um post juntamente com suas respostas
         try {
-            allComments = await Comment.find({post_id: postId});
+            allComments = await Comment.aggregate([{
+                $match: {
+                    post_id: ObjectId(postId)
+                }
+            },{
+                $lookup: {
+                    from: "comments",
+                    localField: "_id",
+                    foreignField: "reply_comment",
+                    as: "reply"
+                },
+            }]);
         }
         catch (error) {
             return response.status(400).json({'error': error});
