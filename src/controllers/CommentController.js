@@ -91,19 +91,17 @@ module.exports = {
         return response.status(204).end();  // Código 204 pois não retorna nenhum conteúdo
     },
 
-    async readAllPostComments(request, response) {
-        const {postId} = request.params;
+    async readAllPostComments(postId) {
         let allComments;
 
         const postExists = await Post.findById(postId);
 
         // Verifica se o post existe
         if (!postExists)
-            return response.status(400).json({'error': 'This post does not exist'});
+            throw new Error('This post does not exist');
 
-        console.log(ObjectId(postId));
-
-        // Tenta selecionar todas os comentários de um post juntamente com suas respostas
+        // Tenta selecionar todas os comentários de um post
+        // juntamente com os dados do author do comentário
         try {
             allComments = await Comment.aggregate([{
                 $match: {
@@ -111,17 +109,21 @@ module.exports = {
                 }
             },{
                 $lookup: {
-                    from: "comments",
-                    localField: "_id",
-                    foreignField: "reply_comment",
-                    as: "reply"
+                    from: "users",
+                    localField: "author",
+                    foreignField: "_id",
+                    as: "author"
                 },
+            },{
+                $unwind: "$author"
+            },{
+                $project : {"author.password": 0}
             }]);
         }
         catch (error) {
-            return response.status(400).json({'error': error});
+            throw new Error(error);
         }
 
-        return response.status(200).json(allComments);
+        return allComments;
     }
 };
