@@ -45,7 +45,6 @@ routes.delete('/comment/:commentId', authMiddleware, CommentController.delete);
 routes.post('/reply', authMiddleware, ReplyController.create);
 routes.put('/reply', authMiddleware, ReplyController.update);
 routes.delete('/reply/:replyId', authMiddleware, ReplyController.delete);
-routes.get('/reply/all/:commentId', ReplyController.readAllCommentReply);
 
 // Rotas de like/dislike
 routes.post('/like/post/:postId', authMiddleware, LikeController.createLikePost);
