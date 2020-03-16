@@ -1,4 +1,7 @@
 const Post = require('../models/Post');
+const CommentController = require('../controllers/CommentController');
+const ReplyController = require('../controllers/ReplyController');
+const {ObjectId} = require('mongodb');
 
 module.exports = {
     // CRIA UM POST
@@ -19,21 +22,53 @@ module.exports = {
     // SELECIONA UM POST
     async read(request, response) {
         const {postId} = request.params;
-
-        // Tenta encontrar o post solicitado no banco
+        
         // Esse try catch foi criado para casos em que o id informado não é válido pelo mongodb
         try {
-            selectedPost = await Post.findById(postId);
+            // Coleta todos os dados do post
+            // juntamente com os dados do autor do post
+            selectedPost = await Post.aggregate([{
+                $match: {
+                    _id: ObjectId(postId)
+                }
+            },{
+                $lookup: {
+                    from: "users",
+                    localField: "author",
+                    foreignField: "_id",
+                    as: "author"
+                },
+            },{
+                $unwind: "$author"
+            },{
+                $project : {"author.password": 0}
+            }]);
+
+            // Coleta todos os comentários do post
+            allComments = await CommentController.readAllPostComments(postId);
+
+            // Será procurado replies para cada comentário do post
+            for (const index in allComments) {
+                // coleta as respostas do comentário
+                allCommentsReplies = await ReplyController.readAllCommentReply(allComments[index]._id);
+
+                // adiciona as respostas para key "reply" do comentário
+                allComments[index].reply = allCommentsReplies;
+            }
+
+            selectedPost[0].comments = allComments;
+
         }
         catch(error) {
             return response.status(400).json({'error': error});
         }
-
+        
         // Verifica se o post solicitado foi encontrado
         if (selectedPost == null)
             return response.status(400).json({'error': 'This post does not exist'})
 
-        return response.json(selectedPost);
+
+        return response.json(selectedPost[0]);
     },
 
     // ATUALIZA UM USUÁRIO
