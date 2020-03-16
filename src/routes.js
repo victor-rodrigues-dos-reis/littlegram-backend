@@ -40,7 +40,6 @@ routes.get('/post/all/:userId', PostController.readAllUserPosts);
 routes.post('/comment', authMiddleware, CommentController.create);
 routes.put('/comment', authMiddleware, CommentController.update);
 routes.delete('/comment/:commentId', authMiddleware, CommentController.delete);
-routes.get('/comment/all/:postId', CommentController.readAllPostComments);
 
 // Rotas de resposta
 routes.post('/reply', authMiddleware, ReplyController.create);
