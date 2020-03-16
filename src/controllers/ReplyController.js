@@ -1,4 +1,5 @@
 const Comment = require('../models/Comment');
+const {ObjectId} = require('mongodb');
 
 module.exports = {
     async create(request, response) {
@@ -89,25 +90,40 @@ module.exports = {
         return response.status(204).end();  // Código 204 pois não retorna nenhum conteúdo
     },
     
-    async readAllCommentReply(request, response) {
-        const {commentId} = request.params;
+    async readAllCommentReply(commentId) {
         let allReply;
 
         const commentExists = await Comment.findById(commentId);
 
         // Verifica se o comentário existe
         if (!commentExists)
-            return response.status(400).json({'error': 'This comment does not exist'});
+            throw new Error('This comment does not exist');
 
         // Tenta selecionar todas as resposta de um comentário
+        // juntamente com os dados do autor da resposta
         try {
-            allReply = await Comment.find({reply_comment: commentId});
+            allReply= await Comment.aggregate([{
+                $match: {
+                    reply_comment: ObjectId(commentId)
+                }
+            },{
+                $lookup: {
+                    from: "users",
+                    localField: "author",
+                    foreignField: "_id",
+                    as: "author"
+                },
+            },{
+                $unwind: "$author"
+            },{
+                $project : {"author.password": 0}
+            }]);
         }
         catch (error) {
-            return response.status(400).json({'error': error});
+            throw new Error(error);
         }
 
-        return response.status(200).json(allReply);
-    },
+        return (allReply);
+    }
     
 };
