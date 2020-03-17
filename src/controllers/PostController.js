@@ -42,6 +42,9 @@ module.exports = {
                 $unwind: "$author"
             },{
                 $project : {"author.password": 0}
+            },
+            {
+                $addFields : {"visual_media": {$concat: ["http://localhost:3333/files/", "$visual_media"]}}
             }]);
 
             // Coleta todos os comentários do post
