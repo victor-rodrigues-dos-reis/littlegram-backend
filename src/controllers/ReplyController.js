@@ -117,6 +117,10 @@ module.exports = {
                 $unwind: "$author"
             },{
                 $project : {"author.password": 0}
+            },{
+                $addFields : {
+                    has_liked: {$in: ["$author._id", "$like"]}
+                }
             }]);
         }
         catch (error) {

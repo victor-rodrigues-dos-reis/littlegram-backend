@@ -44,7 +44,10 @@ module.exports = {
                 $project : {"author.password": 0}
             },
             {
-                $addFields : {"visual_media": {$concat: ["http://localhost:3333/files/", "$visual_media"]}}
+                $addFields : {
+                    visual_media: {$concat: ["http://localhost:3333/files/", "$visual_media"]},
+                    has_liked: {$in: ["$author._id", "$like"]}
+                }
             }]);
 
             // Coleta todos os comentários do post
