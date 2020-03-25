@@ -113,31 +113,36 @@ module.exports = {
     },
 
     // SELECIONA TODOS OS POST DE UM USUÁRIO
-    async readAllUserPosts(request, response) {
-        const {userId} = request.params;
+    async readAllUserPosts(userId) {
         let allPosts, userExists;
-
-        // Tenta pesquisar pelo usuário informado
-        try {
-            userExists = User.findById(userId);
-        }
-        catch(error) {
-            return response.status(400).json({'error': error});
-        }
-
-        // Verifica se o usuário existe
-        if (!userExists)
-            return response.status(400).json({'error': 'This user does not exist'});
 
         // Tenta selecionar todos os posts do usuário
         try {
-            allPosts = await Post.find({'author': userId});
+            allPosts = await Post.aggregate([{
+                $match: {author: ObjectId(userId)}
+            },{
+                $lookup: {
+                    from: "comments",
+                    localField: "_id",
+                    foreignField: "post_id",
+                    as: "comments"
+                }
+            },{
+                $addFields: {
+                    count_comment: {$size: "$comments"},
+                    count_like: {$size: "$like"},
+                    visual_media: {$concat: ["http://localhost:3333/files/", "$visual_media"]},
+                }
+            },{
+                $project: {comments: 0, like: 0}
+            }]);
         }
         catch(error) {
-            return response.status(400).json({'error': error});
+            throw new Error(error);
         }
 
-        return response.json(allPosts);
+        
+        return allPosts.reverse();
     },
 
     // SELECIONA TODOS OS POSTS QUE O USUÁRIO SEGUE

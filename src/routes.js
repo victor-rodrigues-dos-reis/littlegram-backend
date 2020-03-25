@@ -21,7 +21,7 @@ routes.post('/login', LoginController.create);
 
 // Rotas do usuário
 routes.post('/user', UserController.create);
-routes.get('/user/:userId', UserController.read);
+routes.get('/user/:userIdentifier', UserController.read);
 routes.put('/user', authMiddleware, UserController.update);
 routes.delete('/user', authMiddleware, UserController.delete);
 
@@ -34,7 +34,6 @@ routes.post('/post', authMiddleware, uploadMiddleware.single('visual_media'), Po
 routes.get('/post/:postId', PostController.read);
 // routes.put('/post', authMiddleware, PostController.update);
 routes.delete('/post/:postId', authMiddleware, PostController.delete);
-routes.get('/post/all/:userId', PostController.readAllUserPosts);
 
 // Rotas de comentário
 routes.post('/comment', authMiddleware, CommentController.create);
