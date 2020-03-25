@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Auth = require('../controllers/AuthController');
+const Post = require('../controllers/PostController');
 const crypto = require('crypto');
 
 module.exports = {
@@ -37,15 +38,50 @@ module.exports = {
 
     // SELECIONA UM USUÁRIO
     async read(request, response) {
-        const {userId} = request.params;
+        const {userIdentifier} = request.params;
         let selectedUser;
 
-        // Tenta encontrar o usuário solicitado no banco
+        // Tenta encontrar o usuário solicitado no banco pelo ID
         try {
-            selectedUser = await User.findById(userId);
+            selectedUser = await User.findById(userIdentifier);
         }
         catch(error) {
-            return response.status(400).json({'error': error});
+            // Tenta encontrar o usuário solicitado no banco pelo username
+            try {
+                // seleciona as informações do usuário através do username;
+                selectedUser = await User.aggregate([{
+                    $match: {
+                        username: userIdentifier
+                    }
+                },{
+                    $lookup: {
+                        from: "followings",
+                        localField: "_id",
+                        foreignField: "user",
+                        as: "following"
+                    }
+                },{
+                    $lookup: {
+                        from: "followings",
+                        localField: "_id",
+                        foreignField: "following",
+                        as: "follower"
+                    }
+                },{
+                    $addFields: {
+                        count_follower: {$size: "$follower"},
+                        count_following: {$size: "$following"}
+                    }
+                },{
+                    $project: {follow: 0, following: 0, password: 0}
+                }]);
+
+                selectedUser = selectedUser[0];
+                selectedUser.posts = await Post.readAllUserPosts(selectedUser._id);
+            }
+            catch(error) {
+                return response.status(400).json({'error': error});
+            }
         }
 
         // Verifica se o usuário solicitado foi encontrado
