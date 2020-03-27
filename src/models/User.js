@@ -13,7 +13,7 @@ const UserSchema = new Schema ({
     },
     picture: {
         type: String,
-        default: 'defaultProfilePicture.jpg'
+        default: 'USER-default.jpg'
     },
     website: {
         type: String
