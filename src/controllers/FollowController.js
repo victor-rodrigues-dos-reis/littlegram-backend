@@ -63,4 +63,23 @@ module.exports = {
 
         return response.status(204).end();  // Código 204 pois não retorna nenhum conteúdo
     },
+
+    async readAllFollowing(userId) {
+        let allFollowing, arrayFollowing = [];
+
+        // Tenta selecionar todos os usuário que um user está seguindo
+        try {
+            allFollowing = await Following.find({user: userId}, {"following": 1, "_id": 0});
+
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+
+        allFollowing.map((data) => {
+            arrayFollowing.push(data.following);
+        });
+
+        return arrayFollowing;
+    }
 }
