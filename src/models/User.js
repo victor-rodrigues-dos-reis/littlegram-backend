@@ -11,6 +11,10 @@ const UserSchema = new Schema ({
         required: true,
         unique: true
     },
+    picture: {
+        type: String,
+        default: 'defaultProfilePicture.jpg'
+    },
     email: {
         type: String,
         required: true,
@@ -23,7 +27,6 @@ const UserSchema = new Schema ({
     },
     description: {
         type: String,
-        default: ''
     }
 }, {
     timestamps: true
