@@ -70,7 +70,8 @@ module.exports = {
                 },{
                     $addFields: {
                         count_follower: {$size: "$follower"},
-                        count_following: {$size: "$following"}
+                        count_following: {$size: "$following"},
+                        picture: {$concat: ["http://localhost:3333/files/", "$picture"]},
                     }
                 },{
                     $project: {follow: 0, following: 0, password: 0}

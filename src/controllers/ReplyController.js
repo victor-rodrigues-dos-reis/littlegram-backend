@@ -119,7 +119,8 @@ module.exports = {
                 $project : {"author.password": 0}
             },{
                 $addFields : {
-                    has_liked: {$in: ["$author._id", "$like"]}
+                    has_liked: {$in: ["$author._id", "$like"]},
+                    "author.picture": {$concat: ["http://localhost:3333/files/", "$author.picture"]},
                 }
             }]);
         }

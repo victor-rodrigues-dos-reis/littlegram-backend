@@ -44,6 +44,7 @@ module.exports = {
             },{
                 $addFields : {
                     visual_media: {$concat: ["http://localhost:3333/files/", "$visual_media"]},
+                    "author.picture": {$concat: ["http://localhost:3333/files/", "$author.picture"]},
                     has_liked: {$in: ["$author._id", "$like"]},
                     count_like: {$size: '$like'}
                 }
@@ -190,7 +191,8 @@ module.exports = {
                         $unwind: "$author"
                     },{
                         $addFields : {
-                            has_liked: {$in: ["$$user_id", "$like"]}
+                            has_liked: {$in: ["$$user_id", "$like"]},
+                            "author.picture": {$concat: ["http://localhost:3333/files/", "$author.picture"]},
                         }
                     },{
                         $limit: 3
@@ -206,6 +208,10 @@ module.exports = {
                             $expr: {$in: ["$_id", "$$array_like"]}
                         }
                     },{
+                        $addFields: {
+                            picture: {$concat: ["http://localhost:3333/files/", "$picture"]},
+                        }
+                    },{
                         $limit: 3
                     }],
                     as: "like_preview.likes"
@@ -216,6 +222,7 @@ module.exports = {
                     "like_preview.count": {$size: "$like"},
                     has_liked: {$in: [ObjectId(userId), "$like"]},
                     visual_media: {$concat: ["http://localhost:3333/files/", "$visual_media"]},
+                    "author.picture": {$concat: ["http://localhost:3333/files/", "$author.picture"]},
                 }
             },{
                 $sort: {createdAt: -1}
