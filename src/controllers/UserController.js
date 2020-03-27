@@ -137,4 +137,19 @@ module.exports = {
         return response.status(204).end();  // Código 204 pois não retorna nenhum conteúdo
     },
 
+    async updateProfilePicture(request, response) {
+        const userId = request.userId;
+        const {filename} = request.file;
+        
+        // Tenta atualizar a foto de perfil do usuário
+        try {
+            await User.findByIdAndUpdate(userId, {picture: filename});
+        }
+        catch (error) {
+            console.log(error);
+            return response.status(400).json({'error': error});
+        }
+
+        return response.status(204).end();
+    }
 };
