@@ -32,6 +32,7 @@ routes.delete('/unfollow/:followingId', authMiddleware, FollowController.delete)
 // Rotas de postagem
 routes.post('/post', authMiddleware, uploadMiddleware.single('visual_media'), PostController.create);
 routes.get('/post/:postId', PostController.read);
+routes.get('/post/user/following/', authMiddleware, PostController.readAllFollowingPosts);
 // routes.put('/post', authMiddleware, PostController.update);
 routes.delete('/post/:postId', authMiddleware, PostController.delete);
 
