@@ -15,6 +15,9 @@ const UserSchema = new Schema ({
         type: String,
         default: 'defaultProfilePicture.jpg'
     },
+    website: {
+        type: String
+    },
     email: {
         type: String,
         required: true,
