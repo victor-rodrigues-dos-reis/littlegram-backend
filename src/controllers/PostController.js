@@ -1,6 +1,7 @@
 const Post = require('../models/Post');
 const CommentController = require('../controllers/CommentController');
 const ReplyController = require('../controllers/ReplyController');
+const FollowController = require('../controllers/FollowController');
 const {ObjectId} = require('mongodb');
 
 module.exports = {
@@ -41,13 +42,13 @@ module.exports = {
             },{
                 $unwind: "$author"
             },{
-                $project : {"author.password": 0}
-            },
-            {
                 $addFields : {
                     visual_media: {$concat: ["http://localhost:3333/files/", "$visual_media"]},
-                    has_liked: {$in: ["$author._id", "$like"]}
+                    has_liked: {$in: ["$author._id", "$like"]},
+                    count_like: {$size: '$like'}
                 }
+            },{
+                $project : {"author.password": 0, like: 0}
             }]);
 
             // Coleta todos os comentários do post
@@ -144,9 +145,89 @@ module.exports = {
         
         return allPosts.reverse();
     },
-
+    
     // SELECIONA TODOS OS POSTS QUE O USUÁRIO SEGUE
     async readAllFollowingPosts(request, response) {
-        console.log('sdf')
+        const userId = request.userId;
+        
+        try {
+            // Coleta todos os usuário que o usuário logado segue
+            allFollowing = await FollowController.readAllFollowing(userId);
+
+            // Coleta todos os posts dos usuários que o user segue
+            // juntamente com:
+            // - Os dados do autor do post;
+            // - 3 comentários do post;
+            // - O autor de cada comentário;
+            // - Os dados de 3 usuários que deram likes.
+            allPosts = await Post.aggregate([{
+                $match: {author: {$in: allFollowing}}
+            },{
+                $lookup: {
+                    from: "users",
+                    localField: "author",
+                    foreignField: "_id",
+                    as: "author"
+                }
+            },{
+                $unwind: "$author"
+            },{
+                $lookup: {
+                    from: "comments",
+                    let: {post_id: "$_id", user_id: ObjectId(userId)},
+                    pipeline: [{
+                        $match: {
+                            $expr: {$eq: ["$post_id", "$$post_id"]}
+                        }
+                    },{
+                        $lookup: {
+                            from: "users",
+                            localField: "author",
+                            foreignField: "_id",
+                            as: "author"
+                        }
+                    },{
+                        $unwind: "$author"
+                    },{
+                        $addFields : {
+                            has_liked: {$in: ["$$user_id", "$like"]}
+                        }
+                    },{
+                        $limit: 3
+                    }],
+                    as: "comment_preview.comments"
+                }
+            },{
+                $lookup: {
+                    from: "users",
+                    let: {array_like: "$like"},
+                    pipeline: [{
+                        $match: {
+                            $expr: {$in: ["$_id", "$$array_like"]}
+                        }
+                    },{
+                        $limit: 3
+                    }],
+                    as: "like_preview.likes"
+                }
+            },{
+                $addFields: {
+                    "comment_preview.count": {$size: "$comment_preview.comments"},
+                    "like_preview.count": {$size: "$like"},
+                    has_liked: {$in: [ObjectId(userId), "$like"]},
+                    visual_media: {$concat: ["http://localhost:3333/files/", "$visual_media"]},
+                }
+            },{
+                $sort: {createdAt: -1}
+            },{
+                $project: {'author.password':0, likes: 0}
+            }]);
+
+        }
+        catch(error) {
+            return response.status(400).json({'error': error});
+        }
+
+        return response.json(allPosts);
     }
 }
