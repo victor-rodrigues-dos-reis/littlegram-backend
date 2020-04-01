@@ -42,9 +42,27 @@ module.exports = {
             },{
                 $unwind: "$author"
             },{
+                $lookup: {
+                    from: "users",
+                    let: {array_like: "$like"},
+                    pipeline: [{
+                        $match: {
+                            $expr: {$in: ["$_id", "$$array_like"]}
+                        }
+                    },{
+                        $addFields: {
+                            picture: {$concat: ["http://localhost:3333/files/", "$picture"]},
+                        }
+                    },{
+                        $limit: 3
+                    }],
+                    as: "like_preview.likes"
+                }
+            },{
                 $addFields : {
                     visual_media: {$concat: ["http://localhost:3333/files/", "$visual_media"]},
                     "author.picture": {$concat: ["http://localhost:3333/files/", "$author.picture"]},
+                    "like_preview.count": {$size: "$like"},
                     has_liked: {$in: ["$author._id", "$like"]},
                     count_like: {$size: '$like'}
                 }
