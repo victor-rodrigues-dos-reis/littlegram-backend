@@ -15,18 +15,41 @@ module.exports = {
 
         // Tenta criar a resposta
         try {
-            createdReply = await Comment.create({
+            const {_id} = await Comment.create({
                 author: userId,
                 content,
                 reply_comment: commentId
             });
+
+            createdReply = await Comment.aggregate([{
+                $match: {
+                    _id: ObjectId(_id)
+                }
+            },{
+                $lookup: {
+                    from: "users",
+                    localField: "author",
+                    foreignField: "_id",
+                    as: "author"
+                },
+            },{
+                $unwind: "$author"
+            },{
+                $project : {"author.password": 0}
+            },{
+                $addFields : {
+                    has_liked: {$in: ["$author._id", "$like"]},
+                    count_like: {$size: '$like'},
+                    "author.picture": {$concat: ["http://localhost:3333/files/", "$author.picture"]},
+                }
+            }]);
         }
         catch (error) {
             return response.status(400).json({'error': error});
 
         }
 
-        return response.status(201).json(createdReply);
+        return response.status(201).json(createdReply[0]);
     },
     
     async update(request, response) {
@@ -120,6 +143,7 @@ module.exports = {
             },{
                 $addFields : {
                     has_liked: {$in: ["$author._id", "$like"]},
+                    count_like: {$size: '$like'},
                     "author.picture": {$concat: ["http://localhost:3333/files/", "$author.picture"]},
                 }
             }]);

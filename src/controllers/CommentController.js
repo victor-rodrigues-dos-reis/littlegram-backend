@@ -1,4 +1,5 @@
 const Comment = require('../models/Comment');
+const User = require('../models/User');
 const Post = require('../models/Post');
 const {ObjectId} = require('mongodb');
 
@@ -16,18 +17,42 @@ module.exports = {
 
         // Tenta criar o comentário
         try {
-            createdComment = await Comment.create({
+            const {_id} = await Comment.create({
                 author: userId,
                 post_id: postId,
                 content
             });
+            
+            createdComment = await Comment.aggregate([{
+                $match: {
+                    _id: ObjectId(_id)
+                }
+            },{
+                $lookup: {
+                    from: "users",
+                    localField: "author",
+                    foreignField: "_id",
+                    as: "author"
+                },
+            },{
+                $unwind: "$author"
+            },{
+                $addFields : {
+                    has_liked: {$in: ["$author._id", "$like"]},
+                    count_like: {$size: '$like'},
+                    reply: [],
+                    "author.picture": {$concat: ["http://localhost:3333/files/", "$author.picture"]},
+                }
+            },{
+                $project : {"author.password": 0, like: 0}
+            }]);
         }
         catch (error) {
             return response.status(400).json({'error': error});
 
         }
 
-        return response.status(201).json(createdComment);
+        return response.status(201).json(createdComment[0]);
     },
 
     async update(request, response) {
