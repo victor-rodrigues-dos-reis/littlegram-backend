@@ -23,6 +23,7 @@ routes.post('/login', LoginController.create);
 routes.post('/user', UserController.create);
 routes.get('/user/:userIdentifier', UserController.read);
 routes.put('/user', authMiddleware, UserController.update);
+routes.put('/user/password', authMiddleware, UserController.updatePassword);
 routes.put('/user/picture', authMiddleware, uploadMiddleware.single('picture'), UserController.updateProfilePicture);
 routes.delete('/user', authMiddleware, UserController.delete);
 

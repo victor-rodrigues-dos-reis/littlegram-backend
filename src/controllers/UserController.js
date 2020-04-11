@@ -96,12 +96,7 @@ module.exports = {
     async update(request, response) {
         const modifications = request.body;
         const userId = request.userId;
-        const contentType = request.get('Content-Type');
         let updatedUser;
-
-        // Verifica se o content-type é json
-        if (contentType != 'application/json')
-            return response.status(400).json({'error': 'Content-type needs to be application/json'});
 
         // Tenta atualizar o usuário
         try {
@@ -112,6 +107,33 @@ module.exports = {
         }
 
         return response.status(200).json(updatedUser);
+    },
+
+    // ATUALIZA A SENHA DE USUÁRIO
+    async updatePassword(request, response) {
+        let {currentPassword, newPassword} = request.body;
+        const userId = request.userId;
+        let updatedUser;
+
+        const user = await User.findById(userId, 'password');
+
+        // Cria o hash das senhas
+        currentPassword = crypto.createHash('md5').update(currentPassword).digest('hex');
+        newPassword = crypto.createHash('md5').update(newPassword).digest('hex');
+
+        // Verifica se a senha enviada é igual a senha no banco
+        if (currentPassword !== user.password)
+            return response.status(400).json({'error': "Current password is wrong"});
+
+        // Tenta atualizar a senha do usuário
+        try {
+            await User.findByIdAndUpdate(userId, {'password': newPassword});
+        }
+        catch (error) {
+            return response.status(400).json({'error': error});
+        }
+
+        return response.status(204).end();
     },
 
     // DELETA UM USUÁRIO
@@ -141,16 +163,16 @@ module.exports = {
     async updateProfilePicture(request, response) {
         const userId = request.userId;
         const {filename} = request.file;
-        
+        let user;
+
         // Tenta atualizar a foto de perfil do usuário
         try {
-            await User.findByIdAndUpdate(userId, {picture: filename});
+            user = await User.findByIdAndUpdate(userId, {picture: filename}, {new: true});
         }
         catch (error) {
-            console.log(error);
             return response.status(400).json({'error': error});
         }
 
-        return response.status(204).end();
+        return response.status(200).json("http://localhost:3333/files/"+user.picture);
     }
 };
