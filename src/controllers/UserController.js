@@ -74,7 +74,7 @@ module.exports = {
                         picture: {$concat: ["http://localhost:3333/files/", "$picture"]},
                     }
                 },{
-                    $project: {follow: 0, following: 0, password: 0}
+                    $project: {follow: 0, password: 0}
                 }]);
 
                 selectedUser = selectedUser[0];
