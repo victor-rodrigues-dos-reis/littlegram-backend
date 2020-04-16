@@ -160,6 +160,7 @@ module.exports = {
         return response.status(204).end();  // Código 204 pois não retorna nenhum conteúdo
     },
 
+    // ATUALIZA A IMAGEM DE PERFIL DO USUÁRIO
     async updateProfilePicture(request, response) {
         const userId = request.userId;
         const {filename} = request.file;
@@ -174,5 +175,29 @@ module.exports = {
         }
 
         return response.status(200).json("http://localhost:3333/files/"+user.picture);
+    },
+
+    // PESQUISA POR USERNAME
+    async search(request, response) {
+        const {content} = request.params;
+        let users;
+        const regExp = new RegExp(`${content}`);
+
+        try {
+            users = await User.aggregate([{
+                $match: {
+                    username: regExp
+                }
+            }, {
+                $addFields: {
+                    picture: {$concat: ["http://localhost:3333/files/", {$ifNull: [ "$picture", "USER-default.jpg" ]}]},
+                }
+            }])
+        }
+        catch(error) {
+            return response.status(400).json({'error': error});
+        }
+
+        return response.status(200).json(users);
     }
 };

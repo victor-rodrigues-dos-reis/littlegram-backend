@@ -22,6 +22,7 @@ routes.post('/login', LoginController.create);
 // Rotas do usuário
 routes.post('/user', UserController.create);
 routes.get('/user/:userIdentifier', UserController.read);
+routes.get('/search/:content', UserController.search);
 routes.put('/user', authMiddleware, UserController.update);
 routes.put('/user/password', authMiddleware, UserController.updatePassword);
 routes.put('/user/picture', authMiddleware, uploadMiddleware.single('picture'), UserController.updateProfilePicture);
