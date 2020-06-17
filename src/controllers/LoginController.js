@@ -5,7 +5,7 @@ const crypto = require('crypto');
 module.exports = {
     async create(request, response) {
         let {credential, password} = request.body;
-        let token;
+        let token, username, picture, id;
 
         // Transforma a senha em um Hash MD5 igual está no banco de dados
         password = crypto.createHash('md5').update(password).digest('hex');
@@ -33,6 +33,10 @@ module.exports = {
 
         }
 
-        return response.status(200).json({token});
+        username = userExists.username;
+        picture = "http://localhost:3333/files/" + userExists.picture;
+        id = userExists._id;
+
+        return response.status(200).json({token, 'user': {username, picture, id}});
     }
 }
