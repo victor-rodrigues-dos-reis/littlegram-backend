@@ -17,9 +17,9 @@ module.exports = {
                 {email: credential, password}
             ]});
 
-        // Verifica se o usuário existe
+        // Verifica se o usuário existe e se a senha corresponde ao usuário
         if (!userExists)
-            return response.status(400).json({'error': 'Username or email not exists'});
+            return response.status(400).json({'error': "Username doesn't exists or the password is wrong"});
 
         // Tenta criar o token
         try {
