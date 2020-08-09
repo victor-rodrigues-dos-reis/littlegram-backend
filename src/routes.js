@@ -55,4 +55,9 @@ routes.post('/like/comment/:commentId', authMiddleware, LikeController.createLik
 routes.delete('/dislike/post/:postId', authMiddleware, LikeController.deleteLikePost);
 routes.delete('/dislike/comment/:commentId', authMiddleware, LikeController.deleteLikeComment);
 
+// Rota verificação do token
+routes.get('/token/check/validity', authMiddleware, (request, response) => {
+    return response.status(200).json({'message': 'Token is valid'});
+});
+
 module.exports = routes;
